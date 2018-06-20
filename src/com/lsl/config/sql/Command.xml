@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lsl.Dao.ICommand">
+  <resultMap type="com.lsl.bean.Command" id="Command">  
+    <id column="A_ID" jdbcType="INTEGER" property="id"/>	<!-- 因为SQL语句中取了别名,所以column的值必须为别名A_ID,且此处的别名是必须的,因为子表中也有一个列名为ID(去掉了前缀b.后),为了区别开来 -->	  
+    <result column="NAME" jdbcType="VARCHAR" property="name"/>
+    <result column="DESCRIPTION" jdbcType="VARCHAR" property="description"/>
+    <collection property="contentList" resultMap="CommandContent.Content"></collection> <!-- 此处跨文件匹配id了,所以要把命名空间加上 -->
+  </resultMap>
+
+
+  <select id="queryCommandList" parameterType="com.lsl.bean.Command" resultMap="Command"> 
+ 	select a.ID A_ID,a.NAME,a.DESCRIPTION,b.ID,b.CONTENT,b.COMMAND_ID 
+ 	from Command a left join Command_Content b  <!-- left join和right join的区别是left join表示以左边的表为主体,right join则以右边的表为主体,空白部分用null填充 -->
+ 	on a.ID=b.COMMAND_ID 
+ 	<where>
+ 	<if test="name != null and !''.equals(name.trim())"> and a.NAME = #{name} </if>  
+ 	<if test="description != null and !''.equals(description.trim())"> and a.description like '%' #{description} '%' </if>  
+ 	</where>	<!-- <where>标签的作用,可以帮我们动态拼接SQL语句时,去除多余的and/or,并且在if都不满足,既没有内容时不会输出where -->
+  </select>
+  
+  <!-- <sql id="columns">a.ID A_ID,a.NAME,a.DESCRIPTION,b.ID,b.CONTENT,b.COMMAND_ID</sql>相当于定义一个常量,可以使用<include refid="columns" />进行引用 -->
+
+  <!-- 与使用where经常为开头第一个and/or的烦恼一样,使用<update id=""></update>语句也会遇到在set中,有多个要赋值的语句,这时最后","也有一样的烦恼 -->
+  <!-- <update id="a">update message set <if test="...">a=b,</if><if test="...">c=d,</if></update> -->
+  <!-- 此时使用<set>标签,mybatis会自动帮我们去除最后的"," -->
+  
+  <!-- <trim prefix="where" prefixOverrides="and/or"></trim>等价于<where>标签 -->
+  <!-- <trim prefix="set" suffixOverrides=","></trim>等价于<set>标签 -->
+  
+  
+</mapper>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Message"> <!-- 命名空间,目的是防止在多个sql语句配置文件中,出现sql语句的id名相同的问题,且namespace为必须属性 -->
+						  	 <!-- 有了命名空间,可以通过例如Message.queryMessageList进行匹配 -->	
+  <resultMap type="com.lsl.bean.Message" id="MessageResult">  <!-- 配置映射关系,让mybatis自动帮我们将从数据库查询出来的数据存入对应的对象中 -->
+    <id column="ID" jdbcType="INTEGER" property="id"/>		  <!-- column属性的值,与下面SQL语句的查询结果列名相同(不一定是数据库中表的列名,因为可能在查询语句中,给列名取别名,所以以查询语句为准) -->
+    <result column="COMMAND" jdbcType="VARCHAR" property="command"/>
+    <result column="DESCRIPTION" jdbcType="VARCHAR" property="description"/>
+    <result column="CONTENT" jdbcType="VARCHAR" property="content"/>
+  </resultMap>
+  <!-- 
+  		<resultMap>中type为返回结果对应的Javabean对象的全限定名
+  		<id>对应的是数据库中的主键，<result>则是非主键；
+  		column为数据库方面的列名
+  		property对应的是实体类中的私有属性（与数据库的字段对应）
+  	    jdbcType则是   数据库字段的type对应于java.sql.Types 
+  -->
+
+  <select id="queryMessageList" parameterType="java.util.Map" resultMap="MessageResult"> 		<!-- sql语句的id名建议跟着方法名走,而且是唯一的名字 -->
+ 	select ID,COMMAND,DESCRIPTION,CONTENT from message <where>  1=1								<!-- parameterType属性接受传递过来的参数,且只接受一个 -->
+ 	<if test="message.command != null and !''.equals(message.command.trim())"> and command = #{message.command} </if>  <!--  -->
+ 	<if test="message.description != null and !''.equals(message.description.trim())"> and description like '%' #{message.description} '%' </if>  
+ 	</where>
+ 	order by ID limit #{page.dbIndex},#{page.dbNumber}
+  </select>
+	<!-- 
+		查询语句有条件时,必须使用<where>标签,test属性中:
+		1、写OGNL表达式,且从parameterType属性中取值,当parameterType为String与基本数据类型时,通过_parameter表示其中的值,
+												     当为自定义类型时(比如本例的com.lsl.bean.Message),直接写类中的属性名即可
+		2、支持Java中的所有方法,和+、-、*、/、==、!=、&&、||等运算和判断符号
+		3、虽然mybatis支持&&、||这些符号,但是xml文件中不允许,会报错,有两种解决方式：
+			a、使用&&的转义字符&amp;编译时会自动转化为&&
+			b、使用mybatis自己支持的and、or、mod、in、not in中的and代替   //推荐使用第二种
+		4、#{}代表jdbc中的占位符？,#{}中写的是要注入的值,虽然不是OGNL表达式,但是写法相同
+	 -->
+  
+  <delete id="deleteOne" parameterType="int" >
+  	delete from message where ID = #{_parameter}
+  </delete>
+  
+  <!-- <delete id="deleteBatch" parameterType="java.util.List">
+  	delete from message where ID in(
+  		<foreach collection="list" item="item" separator=",">  list代表parameterType传递过来的参数数组本身
+  			#{item}
+  		</foreach>
+  	)
+  </delete> -->
+  <delete id="deleteBatch" parameterType="java.util.Arrays"><!-- 直接parameterType="String"也可以,后面的foreach标签内容不变 -->
+  	delete from message where ID in(
+  		<foreach collection="array" item="item" separator=",">
+  			#{item}
+  		</foreach>
+  	)
+  </delete>
+  
+  <select id="queryMessageCount" parameterType="com.lsl.bean.Message" resultType="int">
+ 	select count(*) from message <where> 			
+ 	<if test="command != null and !''.equals(command.trim())"> and command = #{command} </if>  
+ 	<if test="description != null and !''.equals(description.trim())"> and description like '%' #{description} '%' </if>  
+ 	</where>
+  </select>
+  
+</mapper>

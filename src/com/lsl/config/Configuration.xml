@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+    PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+<!--   <settings> 
+    <setting name="useGeneratedKeys" value="false"/>
+    <setting name="useColumnLabel" value="true"/>
+  </settings>
+
+  <typeAliases>
+    <typeAlias alias="UserAlias" type="org.apache.ibatis.submitted.complex_property.User"/>
+  </typeAliases>
+-->
+
+  <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC">
+        <property name="" value=""/>
+      </transactionManager>
+      <dataSource type="UNPOOLED">
+        <property name="driver" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/wechat_message"/>
+        <property name="username" value="root"/>
+        <property name="password" value=""/>
+      </dataSource>
+    </environment>
+  </environments>
+
+<!-- 本文件为核心配置文件,可以用<mappers>标签导入、管理其他sql配置文件 -->
+  <mappers>
+    <mapper resource="com/lsl/config/sql/Message.xml"/>
+    <!-- 将下面这两行注释,会报PersistenceException异常,并且提示
+    	 Mapped Statements collection does not contain value for Command.queryCommandList(映射声明集合中,没有包含某个值(这个值在代码某处被调用到)) -->
+    <mapper resource="com/lsl/config/sql/Command.xml"/>        
+    <mapper resource="com/lsl/config/sql/CommandContent.xml"/>
+  </mappers>
+
+</configuration>
